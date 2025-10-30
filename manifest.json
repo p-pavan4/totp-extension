@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "TOTP",
+  "version": "1.0",
+  "description": "Generate and manage multiple TOTP codes using Base64 secrets.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "TOTP Manager"
+  },
+  "permissions": ["storage", "clipboardWrite"]
+}
