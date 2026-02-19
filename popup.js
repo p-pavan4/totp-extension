@@ -208,7 +208,7 @@ async function renderList(tokens) {
 
   async function updateCodes() {
     const now = Math.floor(Date.now() / 1000);
-    for (const e of entries) {
+    const promises = entries.map(async (e) => {
       const period = Number(e.period || 30);
       const digits = Number(e.digits || 6);
       const counter = Math.floor(now / period);
@@ -220,7 +220,8 @@ async function renderList(tokens) {
           e.code.textContent = "Error";
         }
       }
-    }
+    });
+    await Promise.all(promises);
   }
 
   function updateCountdowns() {
