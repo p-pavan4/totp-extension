@@ -118,6 +118,11 @@
       .token:hover .delete-btn {
         display: block;
       }
+      .token.selected {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      }
       .name {
         width: 20px;
         text-overflow: ellipsis;
@@ -217,6 +222,13 @@
     </div>
 
     <div class="divider"></div>
+
+    <input
+      id="search"
+      placeholder="Search tokens..."
+      style="margin-bottom: 8px; font-size: 14px; padding: 8px"
+      autocomplete="off"
+    />
 
     <div id="list">
       <div class="empty-state">No accounts added yet</div>

@@ -7,5 +7,17 @@
     "default_popup": "popup.html",
     "default_title": "TOTP Manager"
   },
-  "permissions": ["storage", "clipboardWrite"]
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      },
+      "description": "Open TOTP Manager"
+    }
+  },
+  "permissions": [
+    "storage",
+    "clipboardWrite"
+  ]
 }

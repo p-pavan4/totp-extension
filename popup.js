@@ -26,6 +26,76 @@ const addBtn = document.getElementById("add");
 const clearBtn = document.getElementById("clear");
 const listEl = document.getElementById("list");
 const progressBar = document.getElementById("progress-bar");
+const searchEl = document.getElementById("search");
+
+// Search Logic
+// Search & Selection Logic
+let selectedIndex = 0;
+
+function getVisibleTokens() {
+  return Array.from(document.querySelectorAll(".token")).filter(t => t.style.display !== "none");
+}
+
+function updateSelection() {
+  const visible = getVisibleTokens();
+  if (visible.length === 0) return;
+
+  // Clamp index
+  if (selectedIndex < 0) selectedIndex = 0;
+  if (selectedIndex >= visible.length) selectedIndex = visible.length - 1;
+
+  // Update UI
+  document.querySelectorAll(".token").forEach(t => t.classList.remove("selected"));
+  const selected = visible[selectedIndex];
+  if (selected) {
+    selected.classList.add("selected");
+    selected.scrollIntoView({ block: "nearest" });
+  }
+}
+
+searchEl.addEventListener("input", (e) => {
+  const query = e.target.value.toLowerCase();
+  const tokens = document.querySelectorAll(".token");
+  tokens.forEach(token => {
+    const name = token.querySelector(".name").textContent.toLowerCase();
+    token.style.display = name.includes(query) ? "flex" : "none";
+  });
+  selectedIndex = 0;
+  updateSelection();
+});
+
+searchEl.addEventListener("keydown", (e) => {
+  const visible = getVisibleTokens();
+
+  if (e.key === "ArrowDown") {
+    e.preventDefault(); // Prevent cursor moving in input
+    selectedIndex++;
+    if (selectedIndex >= visible.length) selectedIndex = 0; // Wrap around
+    updateSelection();
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    selectedIndex--;
+    if (selectedIndex < 0) selectedIndex = visible.length - 1; // Wrap around
+    updateSelection();
+  } else if (e.key === "Enter") {
+    if (visible[selectedIndex]) {
+      const code = visible[selectedIndex].querySelector(".code").textContent;
+      navigator.clipboard.writeText(code);
+      // Visual feedback
+      visible[selectedIndex].style.backgroundColor = "#d1fae5"; // light green
+      setTimeout(() => {
+        visible[selectedIndex].style.backgroundColor = "";
+        window.close(); // Close popup on success
+      }, 200);
+    }
+  }
+});
+
+// Focus search on load and init selection
+setTimeout(() => {
+  searchEl.focus();
+  updateSelection();
+}, 100);
 
 // Modal refs
 const modal = document.getElementById("modal");
@@ -165,6 +235,7 @@ async function renderList(tokens) {
   updateCountdowns();
   intervalTimer = setInterval(updateCodes, 1000);
   countdownTimer = setInterval(updateCountdowns, 1000);
+  updateSelection();
 }
 
 // === Events ===
