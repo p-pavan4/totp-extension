@@ -25,6 +25,25 @@ const periodEl = document.getElementById("period");
 const addBtn = document.getElementById("add");
 const clearBtn = document.getElementById("clear");
 const listEl = document.getElementById("list");
+const progressBar = document.getElementById("progress-bar");
+
+// Modal refs
+const modal = document.getElementById("modal");
+const modalTitle = document.getElementById("modal-title");
+const qrContainer = document.getElementById("qrcode-container");
+const closeModalBtn = document.getElementById("close-modal");
+
+closeModalBtn.onclick = () => {
+  modal.style.display = "none";
+  qrContainer.innerHTML = "";
+};
+
+window.onclick = (e) => {
+  if (e.target === modal) {
+    modal.style.display = "none";
+    qrContainer.innerHTML = "";
+  }
+};
 
 let intervalTimer, countdownTimer;
 
@@ -64,9 +83,7 @@ async function renderList(tokens) {
       textContent: "—"
     });
 
-    const countdown = Object.assign(document.createElement("span"), {
-      textContent: "⏱ ..."
-    });
+
 
     const copyBtn = Object.assign(document.createElement("button"), {
       className: "smallbtn",
@@ -78,19 +95,42 @@ async function renderList(tokens) {
       setTimeout(() => (copyBtn.textContent = "📋"), 800);
     };
 
-    const delBtn = Object.assign(document.createElement("button"), {
+    const qrBtn = Object.assign(document.createElement("button"), {
       className: "smallbtn",
-      textContent: "🗑️"
+      textContent: "📱",
+      title: "Show QR Code"
     });
-    delBtn.onclick = () => deleteToken(t.name);
+    qrBtn.onclick = () => {
+      // Generate otpauth URI
+      const label = encodeURIComponent(t.name);
+      const issuer = encodeURIComponent("TOTP Manager");
+      const uri = `otpauth://totp/${label}?secret=${t.secret}&issuer=${issuer}&digits=${t.digits || 6}&period=${t.period || 30}`;
+
+      // Generate QR via CDN
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(uri)}`;
+
+      modalTitle.textContent = `Scan for ${t.name}`;
+      qrContainer.innerHTML = `<img src="${qrUrl}" alt="QR Code" style="width:200px;height:200px;border:1px solid #eee;border-radius:4px;">`;
+      modal.style.display = "flex";
+    };
+
+    const delBtn = Object.assign(document.createElement("button"), {
+      className: "delete-btn",
+      textContent: "×",
+      title: "Delete"
+    });
+    delBtn.onclick = (e) => {
+      e.stopPropagation();
+      deleteToken(t.name);
+    };
 
     const meta = document.createElement("div");
     meta.className = "meta";
-    meta.append(countdown, copyBtn, delBtn);
+    meta.append(copyBtn, qrBtn);
 
-    div.append(name, code, meta);
+    div.append(delBtn, name, code, meta);
     listEl.appendChild(div);
-    return { ...t, code, countdown };
+    return { ...t, code };
   });
 
   if (intervalTimer) clearInterval(intervalTimer);
@@ -114,11 +154,11 @@ async function renderList(tokens) {
   }
 
   function updateCountdowns() {
-    const now = Math.floor(Date.now() / 1000);
-    for (const e of entries) {
-      const remain = (Number(e.period) || 30) - (now % (Number(e.period) || 30));
-      e.countdown.textContent = `⏱ ${remain}s`;
-    }
+    const now = Date.now() / 1000;
+    const period = 30; // Global timer
+    const remain = period - (now % period);
+    const percent = (remain / period) * 100;
+    if (progressBar) progressBar.style.width = `${percent}%`;
   }
 
   await updateCodes();
