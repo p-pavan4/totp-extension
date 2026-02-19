@@ -179,6 +179,20 @@
   <body>
     <div class="header-row">
       <h2>TOTP Manager</h2>
+      <button
+        id="settings-btn"
+        style="
+          background: none;
+          border: none;
+          padding: 4px;
+          cursor: pointer;
+          font-size: 16px;
+          color: #6b7280;
+        "
+        title="Settings"
+      >
+        ⚙️
+      </button>
       <div
         style="
           width: 100px;
@@ -232,6 +246,40 @@
 
     <div id="list">
       <div class="empty-state">No accounts added yet</div>
+    </div>
+
+    <!-- Settings View -->
+    <div id="settings-view" style="display: none">
+      <div class="header-row">
+        <h2>Settings</h2>
+      </div>
+
+      <label for="smart-paste-shortcut">Smart Paste Shortcut</label>
+      <input
+        id="smart-paste-shortcut"
+        type="text"
+        readonly
+        placeholder="Click to record..."
+        style="cursor: pointer; caret-color: transparent"
+      />
+      <p style="font-size: 11px; color: #6b7280; margin-top: 4px">
+        Click the box and press keys to record a new shortcut. default: Alt+V
+      </p>
+
+      <div class="divider"></div>
+
+      <label>Global Shortcut</label>
+      <p style="font-size: 12px; color: #4b5563; margin-top: 4px">
+        To change the global shortcut to open this extension, go to:
+        <a
+          href="#"
+          id="global-shortcut-link"
+          style="color: #3b82f6; text-decoration: none"
+          >chrome://extensions/shortcuts</a
+        >
+      </p>
+
+      <button id="back-btn" style="width: 100%; margin-top: 20px">Back</button>
     </div>
 
     <div

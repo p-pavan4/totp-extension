@@ -27,6 +27,105 @@ const clearBtn = document.getElementById("clear");
 const listEl = document.getElementById("list");
 const progressBar = document.getElementById("progress-bar");
 const searchEl = document.getElementById("search");
+const settingsBtn = document.getElementById("settings-btn");
+const settingsView = document.getElementById("settings-view");
+const backBtn = document.getElementById("back-btn");
+const shortcutInput = document.getElementById("smart-paste-shortcut");
+const globalShortcutLink = document.getElementById("global-shortcut-link");
+const mainViewElements = [nameEl, secretEl, digitsEl, periodEl, addBtn, clearBtn, listEl.parentElement.querySelector('.divider'), searchEl, listEl, document.querySelector('label[for="name"]'), document.querySelector('label[for="secret"]'), document.querySelector('.row')];
+
+let smartPasteShortcut = { modifiers: { alt: true }, key: "v" }; // Default
+
+// === Settings Logic ===
+settingsBtn.onclick = () => {
+  // Hide main view
+  mainViewElements.forEach(el => el && (el.style.display = "none"));
+  // Show settings
+  settingsView.style.display = "block";
+  renderShortcutDisplay();
+};
+
+backBtn.onclick = () => {
+  settingsView.style.display = "none";
+  // Show main view
+  mainViewElements.forEach(el => el && (el.style.display = ""));
+  // Special handling for flex/block elements if needed, but empty string usually reverts to CSS default
+  document.querySelector('.row').style.display = 'flex';
+};
+
+globalShortcutLink.onclick = (e) => {
+  e.preventDefault();
+  chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
+};
+
+function renderShortcutDisplay() {
+  const parts = [];
+  if (smartPasteShortcut.modifiers.ctrl) parts.push("Ctrl");
+  if (smartPasteShortcut.modifiers.alt) parts.push("Alt");
+  if (smartPasteShortcut.modifiers.shift) parts.push("Shift");
+  if (smartPasteShortcut.modifiers.meta) parts.push("Meta");
+  parts.push(smartPasteShortcut.key.toUpperCase());
+  shortcutInput.value = parts.join("+");
+}
+
+shortcutInput.addEventListener('keydown', async (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  // Ignore isolated modifier keys
+  if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) return;
+
+  const newShortcut = {
+    modifiers: {
+      ctrl: e.ctrlKey,
+      alt: e.altKey,
+      shift: e.shiftKey,
+      meta: e.metaKey
+    },
+    key: e.key
+  };
+
+  smartPasteShortcut = newShortcut;
+  renderShortcutDisplay();
+  await chrome.storage.local.set({ smartPasteShortcut });
+});
+
+// === Shortcuts ===
+function isShortcutPressed(e, shortcut) {
+  return (
+    e.key.toLowerCase() === shortcut.key.toLowerCase() &&
+    !!e.ctrlKey === !!shortcut.modifiers.ctrl &&
+    !!e.altKey === !!shortcut.modifiers.alt &&
+    !!e.shiftKey === !!shortcut.modifiers.shift &&
+    !!e.metaKey === !!shortcut.modifiers.meta
+  );
+}
+
+document.addEventListener('keydown', async (e) => {
+  // Smart Paste
+  if (isShortcutPressed(e, smartPasteShortcut)) {
+    e.preventDefault();
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        secretEl.value = text;
+        nameEl.focus();
+      }
+    } catch (err) {
+      console.error('Failed to read clipboard:', err);
+    }
+  }
+});
+
+// Enter to Add
+[nameEl, secretEl, digitsEl, periodEl].forEach(el => {
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addBtn.click();
+    }
+  });
+});
 
 // Search Logic
 // Search & Selection Logic
@@ -274,4 +373,9 @@ clearBtn.onclick = () => {
 (async () => {
   const tokens = await loadTokens();
   renderList(tokens);
+
+  const res = await chrome.storage.local.get("smartPasteShortcut");
+  if (res.smartPasteShortcut) {
+    smartPasteShortcut = res.smartPasteShortcut;
+  }
 })();
