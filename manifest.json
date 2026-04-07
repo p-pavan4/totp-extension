@@ -20,5 +20,11 @@
     "storage",
     "clipboardWrite",
     "clipboardRead"
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "totp-manager@extension.local",
+      "strict_min_version": "109.0"
+    }
+  }
 }

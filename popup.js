@@ -55,7 +55,9 @@ backBtn.onclick = () => {
 
 globalShortcutLink.onclick = (e) => {
   e.preventDefault();
-  chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
+  const isFirefox = chrome.runtime.getURL('').startsWith('moz-extension://');
+  const url = isFirefox ? "about:addons" : "chrome://extensions/shortcuts";
+  chrome.tabs.create({ url });
 };
 
 function renderShortcutDisplay() {
